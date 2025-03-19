@@ -7,12 +7,10 @@
 
 ## 📋 Overview
 
+![image](https://github.com/user-attachments/assets/6720ed2e-790c-408b-af4e-46072203378b)
+
+
 **DW Boss Menu** reimagines the traditional boss menu with a modern UI and extensive management capabilities. This resource provides job owners and managers with a sleek, feature-packed interface to efficiently run their organization.
-
-![Main Screenshot Placeholder]()
-
----
-
 ## ✨ Key Features
 
 ### 👥 Employee Management
