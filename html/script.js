@@ -2683,9 +2683,6 @@ window.addEventListener('message', function(event) {
 
 const validateInput = (currentQuestion) => {
     let isValid = true;
-    let errorMessage = "";
-    
-    // Get the current value based on question type
     let value;
     switch(currentQuestion.type) {
         case "text":
@@ -2693,7 +2690,6 @@ const validateInput = (currentQuestion) => {
             // Check if required and empty
             if (currentQuestion.required && (!value || value.trim() === "")) {
                 isValid = false;
-                errorMessage = "This field is required";
             }
             break;
         case "number":
@@ -2701,7 +2697,6 @@ const validateInput = (currentQuestion) => {
             // Check if required and empty
             if (currentQuestion.required && (!value || value === "")) {
                 isValid = false;
-                errorMessage = "This field is required";
             }
             break;
         case "select":
@@ -2710,29 +2705,12 @@ const validateInput = (currentQuestion) => {
             // Check if required and no selection was made (empty value)
             if (currentQuestion.required && (!value || value === "")) {
                 isValid = false;
-                errorMessage = "Please select an option";
             }
             break;
     }
     
-    // Show notification if validation failed
-    if (!isValid) {
-        // Send to client side to trigger QBCore notification
-        fetch(`https://${GetParentResourceName()}/showNotification`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: errorMessage,
-                type: 'error'
-            })
-        });
-    }
-    
-    return { isValid, errorMessage };
+    return { isValid };
 };
-
 const formatCurrentQuestion = (currentQuestion) => {
     document.getElementById("application-question").innerText = currentQuestion.question;
     
