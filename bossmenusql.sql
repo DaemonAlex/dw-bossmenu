@@ -1,4 +1,4 @@
--- --------------------------------------------------------
+4-- --------------------------------------------------------
 -- Host:                         127.0.0.1
 -- Server version:               10.4.32-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64
@@ -66,6 +66,17 @@ CREATE TABLE IF NOT EXISTS `job_playtime` (
   `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`citizenid`,`job`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table daniworldsql.society
+CREATE TABLE IF NOT EXISTS `society` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `money` bigint(20) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
