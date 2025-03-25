@@ -15,10 +15,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
--- Dumping database structure for daniworldsql
-CREATE DATABASE IF NOT EXISTS `daniworldsql` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci */;
-USE `daniworldsql`;
-
 -- Dumping structure for table daniworldsql.job_applications
 CREATE TABLE IF NOT EXISTS `job_applications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `job_applications` (
   KEY `job` (`job`),
   KEY `citizenid` (`citizenid`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -49,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `job_employee_permissions` (
   `granted_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_employee_job` (`citizenid`,`job`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- Data exporting was unselected.
 
@@ -70,6 +66,22 @@ CREATE TABLE IF NOT EXISTS `job_playtime` (
   `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`citizenid`,`job`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table daniworldsql.society_transactions
+CREATE TABLE IF NOT EXISTS `society_transactions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `society` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `amount` int(11) NOT NULL,
+  `employee` varchar(255) DEFAULT NULL,
+  `executor` varchar(255) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `timestamp` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `society_index` (`society`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
