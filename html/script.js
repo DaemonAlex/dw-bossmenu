@@ -2495,6 +2495,32 @@ window.addEventListener('message', function(event) {
         // Store job data
         currentJobData = data.jobData;
 
+        // Update logo with job image if available
+        const sidebarLogo = document.querySelector('.sidebar-logo');
+        if (currentJobData && currentJobData.logoImage) {
+            const baseUrl = window.location.href.split('/html/')[0];
+            const imgPath = `${baseUrl}/html/images/${currentJobData.logoImage}`;
+            
+            // Create new image element
+            const img = new Image();
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain';
+            img.style.padding = '2px';
+            
+            img.onload = function() {
+                sidebarLogo.innerHTML = '';
+                sidebarLogo.appendChild(img);
+            };
+            img.onerror = function() {
+                sidebarLogo.textContent = 'DW';
+            };
+            img.src = imgPath;
+            img.alt = `${currentJobData.jobLabel || ''} Logo`;
+        } else {
+            sidebarLogo.textContent = 'DW';
+        }
+
         playerTimeOffset = null;
         
         // Apply user settings
