@@ -180,42 +180,64 @@ function CreateJobTargetPoints()
     -- First, remove any existing zones to prevent duplicate opening
     for jobName, _ in pairs(Config.Locations) do
         exports['qb-target']:RemoveZone("jobmanagement_"..jobName)
+        
+        -- Also remove any possible extra zones for this job
+        local i = 1
+        while true do
+            local zoneExists = exports['qb-target']:RemoveZone("jobmanagement_"..jobName.."_"..i)
+            if not zoneExists then
+                break
+            end
+            i = i + 1
+        end
     end
     
     -- Create fresh targets
-    for jobName, location in pairs(Config.Locations) do
-        exports['qb-target']:AddBoxZone("jobmanagement_"..jobName, location.coords, location.length, location.width, {
-            name = "jobmanagement_"..jobName,
-            heading = location.heading,
-            debugPoly = false,
-            minZ = location.minZ,
-            maxZ = location.maxZ,
-        }, {
-            options = {
-                {
-                    type = "client",
-                    event = "dw-bossmenu:client:TriggerOpenManager", 
-                    icon = "fas fa-briefcase",
-                    label = "Manage " .. location.jobLabel,
-                    job = jobName,
-                    canInteract = function()
-                        -- Allow if player is boss or has any permissions for this job
-                        if PlayerData.job and PlayerData.job.name == jobName then
-                            if PlayerData.job.isboss then
-                                return true
-                            else
-                                -- We can't check permissions here directly as it requires a callback
-                                -- So we'll check in the TriggerOpenManager event
-                                return true
+    for jobName, jobData in pairs(Config.Locations) do
+        local jobLabel = jobData.label
+        
+        -- Process each location for this job
+        for locationIndex, location in ipairs(jobData.locations) do
+            local zoneName = "jobmanagement_"..jobName
+            
+            -- For additional locations, add an index to the zone name
+            if locationIndex > 1 then
+                zoneName = zoneName.."_"..locationIndex
+            end
+            
+            exports['qb-target']:AddBoxZone(zoneName, location.coords, location.length, location.width, {
+                name = zoneName,
+                heading = location.heading,
+                debugPoly = false,
+                minZ = location.minZ,
+                maxZ = location.maxZ,
+            }, {
+                options = {
+                    {
+                        type = "client",
+                        event = "dw-bossmenu:client:TriggerOpenManager", 
+                        icon = "fas fa-briefcase",
+                        label = "Manage " .. jobLabel,
+                        job = jobName,
+                        canInteract = function()
+                            -- Allow if player is boss or has any permissions for this job
+                            if PlayerData.job and PlayerData.job.name == jobName then
+                                if PlayerData.job.isboss then
+                                    return true
+                                else
+                                    -- We can't check permissions here directly as it requires a callback
+                                    -- So we'll check in the TriggerOpenManager event
+                                    return true
+                                end
                             end
-                        end
-                        return false
-                    end,
-                    jobData = jobName
+                            return false
+                        end,
+                        jobData = jobName
+                    },
                 },
-            },
-            distance = 2.0
-        })
+                distance = 2.0
+            })
+        end
     end
 end
 
