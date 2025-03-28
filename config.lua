@@ -10,7 +10,7 @@ Config.EnableApplicationSystem = true  -- Set to false to disable job applicatio
 Config.Locations = {
     ["police"] = {
         label = "Police Department",
-        logoImage = "dw.png",
+        logoImage = "police.png",
         locations = {
             {
                 coords = vector3(447.87, -973.55, 30.69), -- Main Police Station
@@ -32,7 +32,7 @@ Config.Locations = {
     },
     ["ambulance"] = {
         label = "EMS Department",
-        logoImage = "dw.png",
+        logoImage = "ems.png",
         locations = {
             {
                 coords = vector3(307.45, -595.47, 43.28), -- Main Hospital
@@ -54,7 +54,7 @@ Config.Locations = {
     },
     ["mechanic"] = {
         label = "Mechanic Shop",
-        logoImage = "dw.png",
+        logoImage = "mechanic.png",
         locations = {
             {
                 coords = vector3(832.92, -909.54, 25.25), -- Mechanic Shop
