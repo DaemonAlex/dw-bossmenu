@@ -348,7 +348,16 @@ function OpenJobManager(jobName)
         local jobConfig = Config.Locations[jobName]
         if jobConfig then
             jobData.logoImage = jobConfig.logoImage
-            jobData.jobLabel = jobConfig.jobLabel
+            if jobConfig.jobLabel then
+                jobData.jobLabel = jobConfig.jobLabel
+            elseif jobConfig.label then
+                jobData.jobLabel = jobConfig.label
+            end
+        end
+            
+        -- Ensure jobLabel exists
+        if not jobData.jobLabel or jobData.jobLabel == "" then
+            jobData.jobLabel = QBCore.Shared.Jobs[jobName].label or jobName
         end
         
         QBCore.Functions.TriggerCallback('dw-bossmenu:server:GetSettings', function(settings)
