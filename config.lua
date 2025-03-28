@@ -1,41 +1,70 @@
 Config = {}
 
+-- Banking System Selection
+Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking"
+
 -- Job Application System Settings
 Config.EnableApplicationSystem = true  -- Set to false to disable job application system
-
 
 -- Management access locations
 Config.Locations = {
     ["police"] = {
-        coords = vector3(447.87, -973.55, 30.69), -- Main Police Station
-        width = 1.0,
-        length = 1.0,
-        heading = 0,
-        minZ = 30.0,
-        maxZ = 31.0,
-        jobLabel = "Police Department"
+        label = "Police Department",
+        locations = {
+            {
+                coords = vector3(447.87, -973.55, 30.69), -- Main Police Station
+                width = 1.0,
+                length = 1.0,
+                heading = 0,
+                minZ = 30.0,
+                maxZ = 31.0,
+            },
+            {
+                coords = vector3(1853.82, 3689.82, 34.27), -- Sandy Shores Sheriff
+                width = 1.0,
+                length = 1.0,
+                heading = 0,
+                minZ = 34.0,
+                maxZ = 35.0,
+            }
+        }
     },
     ["ambulance"] = {
-        coords = vector3(307.45, -595.47, 43.28), -- Hospital
-        width = 1.0,
-        length = 1.0,
-        heading = 0,
-        minZ = 43.0,
-        maxZ = 44.0,
-        jobLabel = "EMS Department"
+        label = "EMS Department",
+        locations = {
+            {
+                coords = vector3(307.45, -595.47, 43.28), -- Main Hospital
+                width = 1.0,
+                length = 1.0,
+                heading = 0,
+                minZ = 43.0,
+                maxZ = 44.0,
+            },
+            {
+                coords = vector3(1839.32, 3673.26, 34.28), -- Sandy Shores Hospital
+                width = 1.0,
+                length = 1.0,
+                heading = 0,
+                minZ = 34.0,
+                maxZ = 35.0,
+            }
+        }
     },
     ["mechanic"] = {
-        coords = vector3(832.92, -909.54, 25.25), -- Mechanic Shop
-        width = 1.0,
-        length = 1.0,
-        heading = 0,
-        minZ = 25.0,
-        maxZ = 26.0,
-        jobLabel = "Mechanic Shop"
-    },
-    -- Add more locations as needed
+        label = "Mechanic Shop",
+        locations = {
+            {
+                coords = vector3(832.92, -909.54, 25.25), -- Mechanic Shop
+                width = 1.0,
+                length = 1.0,
+                heading = 0,
+                minZ = 25.0,
+                maxZ = 26.0,
+            }
+        }
+    }
+    -- Add more jobs as needed
 }
-
 
 Config.ApplicationPoints = {
     ["police"] = {
