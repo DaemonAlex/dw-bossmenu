@@ -1,7 +1,7 @@
 Config = {}
 
 -- Banking System Selection
-Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking"
+Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking" IF YOU ARE NOT USING EITHER CHANGE TO dw-banking!
 
 -- Job Application System Settings
 Config.EnableApplicationSystem = true  -- Set to false to disable job application system
