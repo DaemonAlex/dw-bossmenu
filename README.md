@@ -74,19 +74,24 @@
 1. **Download** the resource and extract to your resources folder
 2. **Import** the included SQL file to your database
 3. **Add the following at the end of your qb-banking server.lua** 
+1. **Download** the resource and extract to your resources folder
+2. **Import** the included SQL file to your database
+3. **Add the following at the end of your qb-banking server.lua** 
 RegisterNetEvent('qb-banking:server:RefreshAccounts', function()
     -- Reload all accounts from database
     MySQL.Async.fetchAll('SELECT * FROM bank_accounts WHERE account_type = ?', {'job'}, function(accounts)
         if accounts and #accounts > 0 then
             for _, account in ipairs(accounts) do
-                -- השתמש ברענון דרך אירוע קיים במקום לנסות לעדכן ישירות
-                -- במקום QBCore.Functions.ExecuteSql שלא קיים
                 TriggerEvent('qb-banking:server:UpdateAccount', account.account_name, 0, "refresh")
                 
                 print('Refreshed account: ' .. account.account_name .. ' with balance: ' .. account.account_balance)
             end
         end
     end)
+end)
+
+RegisterNetEvent('qb-banking:server:ForceRefresh', function()
+    print("Banking accounts refresh triggered")
 end)
 
 RegisterNetEvent('qb-banking:server:ForceRefresh', function()
