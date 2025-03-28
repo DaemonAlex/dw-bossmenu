@@ -344,6 +344,12 @@ function OpenJobManager(jobName)
         end        
         -- Store received permissions
         currentPermissions = jobData.permissions
+
+        local jobConfig = Config.Locations[jobName]
+        if jobConfig then
+            jobData.logoImage = jobConfig.logoImage
+            jobData.jobLabel = jobConfig.jobLabel
+        end
         
         QBCore.Functions.TriggerCallback('dw-bossmenu:server:GetSettings', function(settings)
             if not settings then
