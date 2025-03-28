@@ -798,11 +798,35 @@ function GetSocietyData(jobName)
     if not jobName then return nil end
     
     local societyName = jobName
-    local result = MySQL.Sync.fetchSingle('SELECT * FROM society WHERE name = ?', {societyName})
+    local result = nil
+    local balance = 0
     
-    if not result then
-        MySQL.Sync.execute('INSERT INTO society (name, money) VALUES (?, ?)', {societyName, 0})
-        result = {name = societyName, money = 0}
+    if Config.BankingSystem == "dw-banking" then
+        -- Original method for dw-banking
+        result = MySQL.Sync.fetchSingle('SELECT * FROM society WHERE name = ?', {societyName})
+        
+        if not result then
+            MySQL.Sync.execute('INSERT INTO society (name, money) VALUES (?, ?)', {societyName, 0})
+            result = {name = societyName, money = 0}
+        end
+        
+        balance = result.money
+    elseif Config.BankingSystem == "qb-banking" then
+        -- Method for qb-banking
+        result = MySQL.Sync.fetchSingle('SELECT * FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        
+        if not result then
+            -- Create a new account if it doesn't exist
+            MySQL.Sync.execute('INSERT INTO daniworldsql_bank_accounts (account_name, account_balance, account_type) VALUES (?, ?, ?)', 
+                {societyName, 0, "job"})
+                
+            result = {
+                account_name = societyName,
+                account_balance = 0
+            }
+        end
+        
+        balance = result.account_balance
     end
     
     if not SocietyTransactions[societyName] then
@@ -823,12 +847,14 @@ function GetSocietyData(jobName)
         end
     end
     
+    -- Return data in a standardized format
     return {
         name = jobName,
-        balance = result.money,
+        balance = balance,
         transactions = SocietyTransactions[societyName] or {}
     }
 end
+
 
 function AddSocietyTransaction(societyName, transactionData)
     if not SocietyTransactions[societyName] then
@@ -865,6 +891,7 @@ QBCore.Functions.CreateCallback('dw-bossmenu:server:GetSocietyData', function(so
     cb(GetSocietyData(jobName))
 end)
 
+-- Deposit money into society account
 RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobName)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -882,7 +909,13 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
     Player.Functions.RemoveMoney('cash', amount)
     
     local societyName = jobName
-    MySQL.Async.execute('UPDATE society SET money = money + ? WHERE name = ?', {amount, societyName})
+    
+    -- Update society money based on banking system
+    if Config.BankingSystem == "dw-banking" then
+        MySQL.Async.execute('UPDATE society SET money = money + ? WHERE name = ?', {amount, societyName})
+    elseif Config.BankingSystem == "qb-banking" then
+        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance + ? WHERE account_name = ?', {amount, societyName})
+    end
     
     local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
     AddSocietyTransaction(societyName, {
@@ -898,6 +931,7 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
         GetPlayerName(src), Player.PlayerData.citizenid, amount, jobName))
 end)
 
+-- Withdraw money from society account
 RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobName)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -908,14 +942,32 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
     end
     
     local societyName = jobName
-    local society = MySQL.Sync.fetchSingle('SELECT money FROM society WHERE name = ?', {societyName})
+    local currentBalance = 0
     
-    if not society or society.money < amount then
+    -- Get current society balance based on banking system
+    if Config.BankingSystem == "dw-banking" then
+        local society = MySQL.Sync.fetchSingle('SELECT money FROM society WHERE name = ?', {societyName})
+        if society then
+            currentBalance = society.money
+        end
+    elseif Config.BankingSystem == "qb-banking" then
+        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        if account then
+            currentBalance = account.account_balance
+        end
+    end
+    
+    if currentBalance < amount then
         TriggerClientEvent('QBCore:Notify', src, "Not enough funds in society account", "error")
         return
     end
     
-    MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
+    -- Update society money based on banking system
+    if Config.BankingSystem == "dw-banking" then
+        MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
+    elseif Config.BankingSystem == "qb-banking" then
+        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
+    end
     
     Player.Functions.AddMoney('cash', amount)
     
@@ -933,6 +985,7 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
         GetPlayerName(src), Player.PlayerData.citizenid, amount, jobName))
 end)
 
+-- Transfer money from society account to employee
 RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount, note, jobName)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -943,9 +996,22 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
     end
     
     local societyName = jobName
-    local society = MySQL.Sync.fetchSingle('SELECT money FROM society WHERE name = ?', {societyName})
+    local currentBalance = 0
     
-    if not society or society.money < amount then
+    -- Get current society balance based on banking system
+    if Config.BankingSystem == "dw-banking" then
+        local society = MySQL.Sync.fetchSingle('SELECT money FROM society WHERE name = ?', {societyName})
+        if society then
+            currentBalance = society.money
+        end
+    elseif Config.BankingSystem == "qb-banking" then
+        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        if account then
+            currentBalance = account.account_balance
+        end
+    end
+    
+    if currentBalance < amount then
         TriggerClientEvent('QBCore:Notify', src, "Not enough funds in society account", "error")
         return
     end
@@ -956,7 +1022,12 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
         return
     end
     
-    MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
+    -- Update society money based on banking system
+    if Config.BankingSystem == "dw-banking" then
+        MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
+    elseif Config.BankingSystem == "qb-banking" then
+        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
+    end
     
     targetPlayer.Functions.AddMoney('bank', amount)
     
