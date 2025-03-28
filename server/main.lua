@@ -4,7 +4,7 @@ local bankingModule = exports['qb-banking']
 -- Global tables for data storage
 local PlayerSettings = {}
 local ActivityData = {}
-local PlayerJoinTimes = {} -- Table to store player join times
+local PlayerJoinTimes = {} 
 local RefreshTimers = {}
 local PlaytimeCache = {}
 local SocietyTransactions = {}
