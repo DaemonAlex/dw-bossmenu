@@ -2528,7 +2528,7 @@ window.addEventListener('message', function(event) {
         
         // Update department name
         document.getElementById("container").style.display = "flex";
-        document.getElementById('department-title').textContent = `${data.jobData.jobLabel} - Dashboard`;
+        document.getElementById('department-title').textContent = `${data.jobData.jobLabel || data.jobData.jobName || jobName || "Job"} - Dashboard`;
         
         // Update all parts of the interface
         updateDashboardStats();
