@@ -57,18 +57,6 @@
 - **Comprehensive Configuration**: Easily customize all aspects
 
 ---
-
-![image](https://github.com/user-attachments/assets/4a4d28b0-83c5-41bf-b9e9-5535a981dda3)
-![image](https://github.com/user-attachments/assets/7215bdbf-0c68-4ebb-aecb-1f9558c257a7)
-![image](https://github.com/user-attachments/assets/c934baab-dcec-4f76-8207-3c725a1a9382)
-![image](https://github.com/user-attachments/assets/6dc08a76-d70a-4a60-b341-eb63246c0270)
-![image](https://github.com/user-attachments/assets/05bc554d-9f51-47d6-a4e7-3da2db48b1fb)
-
-
-
-
-
-
 ## 📦 Installation
 
 1. **Download** the resource and extract to your resources folder
@@ -76,7 +64,9 @@
 3. **Add the following at the end of your qb-banking server.lua** 
 1. **Download** the resource and extract to your resources folder
 2. **Import** the included SQL file to your database
-3. **Add the following at the end of your qb-banking server.lua** 
+3. **Add the following at the end of your qb-banking server.lua**
+   
+```lua
 RegisterNetEvent('qb-banking:server:RefreshAccounts', function()
     -- Reload all accounts from database
     MySQL.Async.fetchAll('SELECT * FROM bank_accounts WHERE account_type = ?', {'job'}, function(accounts)
@@ -93,10 +83,10 @@ end)
 RegisterNetEvent('qb-banking:server:ForceRefresh', function()
     print("Banking accounts refresh triggered")
 end)
+```
 
-RegisterNetEvent('qb-banking:server:ForceRefresh', function()
-    print("Banking accounts refresh triggered")
-end)
+---
+
 4. **Add** `ensure dw-bossmenu` to your server.cfg
 5. **Configure** locations and application questions in the config.lua
 
@@ -144,6 +134,13 @@ If you encounter any issues or have suggestions:
 - Leave a comment on the CFX forum post
 
 ---
+
+![image](https://github.com/user-attachments/assets/4a4d28b0-83c5-41bf-b9e9-5535a981dda3)
+![image](https://github.com/user-attachments/assets/7215bdbf-0c68-4ebb-aecb-1f9558c257a7)
+![image](https://github.com/user-attachments/assets/c934baab-dcec-4f76-8207-3c725a1a9382)
+![image](https://github.com/user-attachments/assets/6dc08a76-d70a-4a60-b341-eb63246c0270)
+![image](https://github.com/user-attachments/assets/05bc554d-9f51-47d6-a4e7-3da2db48b1fb)
+
 
   
 ### Enjoy DW Boss Menu and happy roleplaying!
