@@ -54,7 +54,7 @@ Config.Locations = {
     },
     ["mechanic"] = {
         label = "Mechanic Shop",
-        logoImage = "dw.png".
+        logoImage = "dw.png",
         locations = {
             {
                 coords = vector3(832.92, -909.54, 25.25), -- Mechanic Shop
