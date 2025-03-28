@@ -59,9 +59,7 @@
 ---
 ## 📦 Installation
 
-1. **Download** the resource and extract to your resources folder
-2. **Import** the included SQL file to your database
-3. **Add the following at the end of your qb-banking server.lua** 
+
 1. **Download** the resource and extract to your resources folder
 2. **Import** the included SQL file to your database
 3. **Add the following at the end of your qb-banking server.lua**
