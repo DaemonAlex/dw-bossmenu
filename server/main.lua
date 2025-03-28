@@ -813,11 +813,11 @@ function GetSocietyData(jobName)
         balance = result.money
     elseif Config.BankingSystem == "qb-banking" then
         -- Method for qb-banking
-        result = MySQL.Sync.fetchSingle('SELECT * FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        result = MySQL.Sync.fetchSingle('SELECT * FROM bank_accounts WHERE account_name = ?', {societyName})
         
         if not result then
             -- Create a new account if it doesn't exist
-            MySQL.Sync.execute('INSERT INTO daniworldsql_bank_accounts (account_name, account_balance, account_type) VALUES (?, ?, ?)', 
+            MySQL.Sync.execute('INSERT INTO bank_accounts (account_name, account_balance, account_type) VALUES (?, ?, ?)', 
                 {societyName, 0, "job"})
                 
             result = {
@@ -914,7 +914,7 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money + ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance + ? WHERE account_name = ?', {amount, societyName})
+        MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance + ? WHERE account_name = ?', {amount, societyName})
     end
     
     local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
@@ -951,7 +951,7 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
             currentBalance = society.money
         end
     elseif Config.BankingSystem == "qb-banking" then
-        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM bank_accounts WHERE account_name = ?', {societyName})
         if account then
             currentBalance = account.account_balance
         end
@@ -966,7 +966,7 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
+        MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
     end
     
     Player.Functions.AddMoney('cash', amount)
@@ -1005,7 +1005,7 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
             currentBalance = society.money
         end
     elseif Config.BankingSystem == "qb-banking" then
-        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM daniworldsql_bank_accounts WHERE account_name = ?', {societyName})
+        local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM bank_accounts WHERE account_name = ?', {societyName})
         if account then
             currentBalance = account.account_balance
         end
@@ -1026,7 +1026,7 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        MySQL.Async.execute('UPDATE daniworldsql_bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
+        MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
     end
     
     targetPlayer.Functions.AddMoney('bank', amount)
