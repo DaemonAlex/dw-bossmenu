@@ -791,7 +791,6 @@ AddEventHandler('onResourceStart', function(resourceName)
     LoadSocietyTransactions()
     TriggerEvent('QBCore:server:UpdateObject')
     if resource == GetCurrentResourceName() then
-        -- רענן את qb-banking כשהסקריפט מתחיל
         if Config.BankingSystem == "qb-banking" then
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
@@ -806,7 +805,6 @@ function GetSocietyData(jobName)
     local balance = 0
     
     if Config.BankingSystem == "dw-banking" then
-        -- Original method for dw-banking
         result = MySQL.Sync.fetchSingle('SELECT * FROM society WHERE name = ?', {societyName})
         
         if not result then
@@ -816,17 +814,14 @@ function GetSocietyData(jobName)
         
         balance = result.money
     elseif Config.BankingSystem == "qb-banking" then
-        -- קודם ננסה לקבל את היתרה דרך האקספורט של qb-banking
         local account = bankingModule:GetAccount(societyName)
         
         if account then
             balance = account.account_balance
         else
-            -- אם לא מצאנו בזיכרון, ננסה לקבל מהדאטהבייס
             result = MySQL.Sync.fetchSingle('SELECT * FROM bank_accounts WHERE account_name = ?', {societyName})
             
             if not result then
-                -- אם לא קיים, נייצר חשבון חדש
                 bankingModule:CreateJobAccount(societyName, 0)
                 balance = 0
             else
@@ -916,16 +911,12 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
     
     local societyName = jobName
     
-    -- במקום לעדכן ישירות את הדאטהבייס, השתמש באקספורט של qb-banking
     if Config.BankingSystem == "dw-banking" then
-        -- שימוש בשיטה המקורית
         MySQL.Async.execute('UPDATE society SET money = money + ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        -- קריאה לפונקציה AddMoney של qb-banking שמעדכנת גם את הזיכרון וגם את הדאטהבייס
         local success = bankingModule:AddMoney(societyName, amount, note or "Boss Menu Deposit")
         
         if not success then
-            -- אם הפונקציה נכשלה, נעדכן ישירות את הדאטהבייס ונשדר אירוע לרענון
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance + ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
@@ -965,10 +956,8 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
             currentBalance = society.money
         end
     elseif Config.BankingSystem == "qb-banking" then
-        -- השתמש בפונקציה GetAccountBalance של qb-banking
         currentBalance = bankingModule:GetAccountBalance(societyName)
         
-        -- אם אין חשבון באובייקט של qb-banking, בדוק בדאטהבייס
         if currentBalance == 0 then
             local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM bank_accounts WHERE account_name = ?', {societyName})
             if account then
@@ -986,11 +975,9 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        -- קריאה לפונקציה RemoveMoney של qb-banking שמעדכנת גם את הזיכרון וגם את הדאטהבייס
         local success = bankingModule:RemoveMoney(societyName, amount, note or "Boss Menu Withdrawal")
         
         if not success then
-            -- אם הפונקציה נכשלה, נעדכן ישירות את הדאטהבייס ונשדר אירוע לרענון
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
@@ -1033,10 +1020,8 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
             currentBalance = society.money
         end
     elseif Config.BankingSystem == "qb-banking" then
-        -- השתמש בפונקציה GetAccountBalance של qb-banking
         currentBalance = bankingModule:GetAccountBalance(societyName)
         
-        -- אם אין חשבון באובייקט של qb-banking, בדוק בדאטהבייס
         if currentBalance == 0 then
             local account = MySQL.Sync.fetchSingle('SELECT account_balance FROM bank_accounts WHERE account_name = ?', {societyName})
             if account then
@@ -1060,11 +1045,9 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
     elseif Config.BankingSystem == "qb-banking" then
-        -- קריאה לפונקציה RemoveMoney של qb-banking שמעדכנת גם את הזיכרון וגם את הדאטהבייס
         local success = bankingModule:RemoveMoney(societyName, amount, note or "Boss Menu Transfer to " .. targetPlayer.PlayerData.charinfo.firstname)
         
         if not success then
-            -- אם הפונקציה נכשלה, נעדכן ישירות את הדאטהבייס ונשדר אירוע לרענון
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
