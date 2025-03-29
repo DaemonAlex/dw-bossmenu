@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 
-author 'QB-Framework'
+author 'DaniWorld'
 description 'QB Job Manager - Boss Management System'
 version '1.2`
 
