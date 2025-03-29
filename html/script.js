@@ -1043,6 +1043,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.addEventListener('keydown', function(event) {
     if (event.keyCode === 27) {
+        const fullscreenOverlay = document.querySelector('.fullscreen-overlay');
+        if (fullscreenOverlay) {
+            document.body.removeChild(fullscreenOverlay);
+            return; 
+        }
         
         document.querySelectorAll('.modal.show').forEach(modal => {
             modal.classList.remove('show');
