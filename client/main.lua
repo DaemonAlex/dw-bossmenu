@@ -38,6 +38,16 @@ RegisterNetEvent('dw-bossmenu:client:JobChanged', function(jobName)
     end
 end)
 
+function UseTargetSystem(action, ...)
+    if Config.TargetSystem == "qb-target" then
+        return exports['qb-target'][action](...)
+    elseif Config.TargetSystem == "ox_target" then
+        local oxAction = action:gsub("^%u", string.lower) 
+        return exports.ox_target[oxAction](...)
+    end
+end
+
+
 function CreateApplicationPoints()    
     if not Config.EnableApplicationSystem then 
         return 
@@ -48,28 +58,48 @@ function CreateApplicationPoints()
     end
     
     for jobName, location in pairs(Config.ApplicationPoints) do
-        exports['qb-target']:AddBoxZone("job_application_"..jobName, location.coords, location.length, location.width, {
-            name = "job_application_"..jobName,
-            heading = location.heading,
-            debugPoly = false, -- Set to true for testing
-            minZ = location.minZ,
-            maxZ = location.maxZ,
-        }, {
-            options = {
-                {
-                    type = "client",
-                    event = "dw-bossmenu:client:OpenApplicationForm",
-                    icon = "fas fa-file-alt",
-                    label = location.label,
-                    job = false, 
-                    canInteract = function()
-                        return true
-                    end,
-                    jobData = jobName
+        if Config.TargetSystem == "qb-target" then
+            exports['qb-target']:AddBoxZone("job_application_"..jobName, location.coords, location.length, location.width, {
+                name = "job_application_"..jobName,
+                heading = location.heading,
+                debugPoly = false,
+                minZ = location.minZ,
+                maxZ = location.maxZ,
+            }, {
+                options = {
+                    {
+                        type = "client",
+                        event = "dw-bossmenu:client:OpenApplicationForm",
+                        icon = "fas fa-file-alt",
+                        label = location.label,
+                        job = false, 
+                        canInteract = function()
+                            return true
+                        end,
+                        jobData = jobName
+                    },
                 },
-            },
-            distance = 2.0
-        })
+                distance = 2.0
+            })
+        elseif Config.TargetSystem == "ox_target" then
+            exports.ox_target:addBoxZone({
+                coords = location.coords,
+                size = {location.length, location.width, location.maxZ - location.minZ},
+                rotation = location.heading,
+                debug = false,
+                options = {
+                    {
+                        name = "job_application_"..jobName,
+                        icon = "fas fa-file-alt",
+                        label = location.label,
+                        onSelect = function()
+                            TriggerEvent("dw-bossmenu:client:OpenApplicationForm", {jobData = jobName})
+                        end,
+                        distance = 2.0
+                    }
+                }
+            })
+        end
     end
 end
 
@@ -177,69 +207,102 @@ end)
 
 -- Create ONLY interaction points for job management
 function CreateJobTargetPoints()
-    -- First, remove any existing zones to prevent duplicate opening
     for jobName, _ in pairs(Config.Locations) do
-        exports['qb-target']:RemoveZone("jobmanagement_"..jobName)
-        
-        -- Also remove any possible extra zones for this job
-        local i = 1
-        while true do
-            local zoneExists = exports['qb-target']:RemoveZone("jobmanagement_"..jobName.."_"..i)
-            if not zoneExists then
-                break
+        if Config.TargetSystem == "qb-target" then
+            exports['qb-target']:RemoveZone("jobmanagement_"..jobName)
+            
+            local i = 1
+            while true do
+                local zoneExists = exports['qb-target']:RemoveZone("jobmanagement_"..jobName.."_"..i)
+                if not zoneExists then
+                    break
+                end
+                i = i + 1
             end
-            i = i + 1
+        elseif Config.TargetSystem == "ox_target" then
+            exports.ox_target:removeZone("jobmanagement_"..jobName)
+            
+            local i = 1
+            while i <= 10 do 
+                exports.ox_target:removeZone("jobmanagement_"..jobName.."_"..i)
+                i = i + 1
+            end
         end
     end
     
-    -- Create fresh targets
     for jobName, jobData in pairs(Config.Locations) do
         local jobLabel = jobData.label
         
-        -- Process each location for this job
         for locationIndex, location in ipairs(jobData.locations) do
             local zoneName = "jobmanagement_"..jobName
             
-            -- For additional locations, add an index to the zone name
             if locationIndex > 1 then
                 zoneName = zoneName.."_"..locationIndex
             end
             
-            exports['qb-target']:AddBoxZone(zoneName, location.coords, location.length, location.width, {
-                name = zoneName,
-                heading = location.heading,
-                debugPoly = false,
-                minZ = location.minZ,
-                maxZ = location.maxZ,
-            }, {
-                options = {
-                    {
-                        type = "client",
-                        event = "dw-bossmenu:client:TriggerOpenManager", 
-                        icon = "fas fa-briefcase",
-                        label = "Manage " .. jobLabel,
-                        job = jobName,
-                        canInteract = function()
-                            -- Allow if player is boss or has any permissions for this job
-                            if PlayerData.job and PlayerData.job.name == jobName then
-                                if PlayerData.job.isboss then
-                                    return true
-                                else
-                                    -- We can't check permissions here directly as it requires a callback
-                                    -- So we'll check in the TriggerOpenManager event
-                                    return true
+            if Config.TargetSystem == "qb-target" then
+                exports['qb-target']:AddBoxZone(zoneName, location.coords, location.length, location.width, {
+                    name = zoneName,
+                    heading = location.heading,
+                    debugPoly = false,
+                    minZ = location.minZ,
+                    maxZ = location.maxZ,
+                }, {
+                    options = {
+                        {
+                            type = "client",
+                            event = "dw-bossmenu:client:TriggerOpenManager", 
+                            icon = "fas fa-briefcase",
+                            label = "Manage " .. jobLabel,
+                            job = jobName,
+                            canInteract = function()
+                                if PlayerData.job and PlayerData.job.name == jobName then
+                                    if PlayerData.job.isboss then
+                                        return true
+                                    else
+                                        return true
+                                    end
                                 end
-                            end
-                            return false
-                        end,
-                        jobData = jobName
+                                return false
+                            end,
+                            jobData = jobName
+                        },
                     },
-                },
-                distance = 2.0
-            })
+                    distance = 2.0
+                })
+            elseif Config.TargetSystem == "ox_target" then
+                exports.ox_target:addBoxZone({
+                    coords = location.coords,
+                    size = {location.length, location.width, location.maxZ - location.minZ},
+                    rotation = location.heading,
+                    debug = false,
+                    options = {
+                        {
+                            name = zoneName,
+                            icon = "fas fa-briefcase",
+                            label = "Manage " .. jobLabel,
+                            onSelect = function()
+                                TriggerEvent("dw-bossmenu:client:TriggerOpenManager", {jobData = jobName})
+                            end,
+                            canInteract = function()
+                                if PlayerData.job and PlayerData.job.name == jobName then
+                                    if PlayerData.job.isboss then
+                                        return true
+                                    else
+                                        return true
+                                    end
+                                end
+                                return false
+                            end,
+                            distance = 2.0
+                        }
+                    }
+                })
+            end
         end
     end
 end
+
 
 RegisterNetEvent('dw-bossmenu:client:TriggerOpenManager', function(data)
     TriggerServerEvent('dw-bossmenu:server:RequestRefreshJobData')
@@ -550,9 +613,13 @@ end)
 -- Extra safeguard for resource start/stop
 AddEventHandler('onResourceStart', function(resourceName)
     if GetCurrentResourceName() ~= resourceName then return end    
-    -- Wait to ensure the server is fully loaded
     Wait(3000)
-    -- Set up player data if player is already loaded
+    
+    if Config.TargetSystem ~= "qb-target" and Config.TargetSystem ~= "ox_target" then
+        print("^1[dw-bossmenu]^7 Invalid target system in config: " .. (Config.TargetSystem or "nil") .. ". Defaulting to qb-target.")
+        Config.TargetSystem = "qb-target"
+    end
+    
     if LocalPlayer.state.isLoggedIn then
         PlayerData = QBCore.Functions.GetPlayerData()
         isLoggedIn = true
