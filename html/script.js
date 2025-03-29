@@ -1313,6 +1313,7 @@ function setupSocietyEventListeners() {
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
+                    showNotification(`Funds ${type === 'deposit' ? 'deposited' : 'withdrawn'} successfully`);
                     closeModal();
                     
                     document.getElementById(`${type}-amount`).value = '';
