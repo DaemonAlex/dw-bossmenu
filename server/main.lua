@@ -1,5 +1,10 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-local bankingModule = exports['qb-banking']
+local bankingModule = exports['qb-banking'] 
+
+local RenewedBanking = nil
+if Config.BankingSystem == "renewed-banking" then
+    RenewedBanking = exports['Renewed-Banking']
+end
 
 -- Global tables for data storage
 local PlayerSettings = {}
@@ -793,6 +798,8 @@ AddEventHandler('onResourceStart', function(resourceName)
     if resource == GetCurrentResourceName() then
         if Config.BankingSystem == "qb-banking" then
             TriggerEvent('qb-banking:server:RefreshAccounts')
+        elseif Config.BankingSystem == "renewed-banking" then
+            RenewedBanking = exports['Renewed-Banking']
         end
     end
 end)
@@ -828,6 +835,8 @@ function GetSocietyData(jobName)
                 balance = result.account_balance
             end
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        balance = RenewedBanking:getAccountMoney(societyName) or 0
     end
     
     if not SocietyTransactions[societyName] then
@@ -855,6 +864,7 @@ function GetSocietyData(jobName)
         transactions = SocietyTransactions[societyName] or {}
     }
 end
+
 
 
 function AddSocietyTransaction(societyName, transactionData)
@@ -910,6 +920,7 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
     Player.Functions.RemoveMoney('cash', amount)
     
     local societyName = jobName
+    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
     
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money + ? WHERE name = ?', {amount, societyName})
@@ -920,9 +931,27 @@ RegisterNetEvent('dw-bossmenu:server:DepositMoney', function(amount, note, jobNa
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance + ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        local success = RenewedBanking:addAccountMoney(societyName, amount)
+        
+        if success then
+            local jobLabel = QBCore.Shared.Jobs[jobName].label or jobName
+            RenewedBanking:handleTransaction(
+                societyName,  
+                "Society Deposit", 
+                amount, 
+                note or "Boss Menu Deposit", 
+                playerName, 
+                jobLabel, 
+                "deposit" 
+            )
+        else
+            TriggerClientEvent('QBCore:Notify', src, "Failed to deposit money", "error")
+            Player.Functions.AddMoney('cash', amount)
+            return
+        end
     end
     
-    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
     AddSocietyTransaction(societyName, {
         type = 'deposit',
         amount = amount,
@@ -964,12 +993,16 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
                 currentBalance = account.account_balance
             end
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        currentBalance = RenewedBanking:getAccountMoney(societyName) or 0
     end
     
     if currentBalance < amount then
         TriggerClientEvent('QBCore:Notify', src, "Not enough funds in society account", "error")
         return
     end
+    
+    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
     
     -- Update society money based on banking system
     if Config.BankingSystem == "dw-banking" then
@@ -981,11 +1014,28 @@ RegisterNetEvent('dw-bossmenu:server:WithdrawMoney', function(amount, note, jobN
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        local success = RenewedBanking:removeAccountMoney(societyName, amount)
+        
+        if success then
+            local jobLabel = QBCore.Shared.Jobs[jobName].label or jobName
+            RenewedBanking:handleTransaction(
+                societyName,  
+                "Society Withdrawal", 
+                amount, 
+                note or "Boss Menu Withdrawal",
+                jobLabel, 
+                playerName, 
+                "withdraw" 
+            )
+        else
+            TriggerClientEvent('QBCore:Notify', src, "Failed to withdraw money", "error")
+            return
+        end
     end
     
     Player.Functions.AddMoney('cash', amount)
     
-    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
     AddSocietyTransaction(societyName, {
         type = 'withdraw',
         amount = amount,
@@ -1028,6 +1078,8 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
                 currentBalance = account.account_balance
             end
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        currentBalance = RenewedBanking:getAccountMoney(societyName) or 0
     end
     
     if currentBalance < amount then
@@ -1041,6 +1093,9 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
         return
     end
     
+    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
+    local targetName = targetPlayer.PlayerData.charinfo.firstname .. ' ' .. targetPlayer.PlayerData.charinfo.lastname
+    
     -- Update society money based on banking system
     if Config.BankingSystem == "dw-banking" then
         MySQL.Async.execute('UPDATE society SET money = money - ? WHERE name = ?', {amount, societyName})
@@ -1051,12 +1106,38 @@ RegisterNetEvent('dw-bossmenu:server:TransferMoney', function(citizenid, amount,
             MySQL.Async.execute('UPDATE bank_accounts SET account_balance = account_balance - ? WHERE account_name = ?', {amount, societyName})
             TriggerEvent('qb-banking:server:RefreshAccounts')
         end
+    elseif Config.BankingSystem == "renewed-banking" then
+        local success = RenewedBanking:removeAccountMoney(societyName, amount)
+        
+        if success then
+            local jobLabel = QBCore.Shared.Jobs[jobName].label or jobName
+            RenewedBanking:handleTransaction(
+                societyName,  
+                "Society Transfer", 
+                amount, 
+                note or "Boss Menu Transfer to " .. targetName, 
+                jobLabel, 
+                targetName, 
+                "withdraw" 
+            )
+            
+            RenewedBanking:handleTransaction(
+                targetPlayer.PlayerData.citizenid,  
+                "Society Transfer", 
+                amount, 
+                note or "Transfer from " .. jobLabel, 
+                jobLabel, 
+                targetName, 
+                "deposit" 
+            )
+        else
+            TriggerClientEvent('QBCore:Notify', src, "Failed to transfer money", "error")
+            return
+        end
     end
     
     targetPlayer.Functions.AddMoney('bank', amount)
     
-    local playerName = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-    local targetName = targetPlayer.PlayerData.charinfo.firstname .. ' ' .. targetPlayer.PlayerData.charinfo.lastname
     AddSocietyTransaction(societyName, {
         type = 'transfer',
         amount = amount,
