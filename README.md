@@ -105,7 +105,7 @@ Config.Locations = {
 ```
 6. **Configure** Select which bannk system and target system you are using in the config.lua
 ```lua
-Config.BankingSystem = "renewed-banking"  -- Options: "dw-banking", "qb-banking", "renewed-banking"
+Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking", "renewed-banking"
 ```
 ```lua
 Config.TargetSystem = "qb-target"  -- Options: "qb-target", "ox_target"
