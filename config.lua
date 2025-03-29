@@ -1,10 +1,14 @@
 Config = {}
 
 -- Banking System Selection
-Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking" IF YOU ARE NOT USING EITHER CHANGE TO dw-banking!
+Config.BankingSystem = "qb-banking"  -- Options: "dw-banking", "qb-banking", "renewed-banking"
+
+-- Target Sysytem Selection
+Config.TargetSystem = "qb-target"  -- Options: "qb-target", "ox_target"
 
 -- Job Application System Settings
 Config.EnableApplicationSystem = true  -- Set to false to disable job application system
+
 
 -- Management access locations
 Config.Locations = {
